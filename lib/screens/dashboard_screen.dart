@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'items_screen.dart'; // استدعاء شاشة الأصناف الجديدة
+import 'items_screen.dart'; 
+import 'add_batch_screen.dart'; 
+import 'fefo_withdraw_screen.dart'; 
+import 'history_screen.dart'; 
+import 'reports_screen.dart'; 
+import 'settings_screen.dart'; // الاستدعاء الجديد لشاشة الإعدادات
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -23,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 450), // تقييد العرض ليحاكي الجوال
+          constraints: const BoxConstraints(maxWidth: 450), 
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -41,12 +46,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 1.1,
                     children: [
-                      // الزر الأول مربوط الآن بالشاشة الجديدة
                       _buildDashboardCard('الأصناف والفئات', Icons.inventory, Colors.orange, const ItemsScreen()),
-                      // باقي الأزرار لا تزال بدون شاشات فعلية وتعرض رسالة فقط
-                      _buildDashboardCard('إضافة دفعة', Icons.add_box, Colors.green, null),
-                      _buildDashboardCard('سحب (FEFO)', Icons.outbox, Colors.red, null),
-                      _buildDashboardCard('السجل والفعاليات', Icons.history, Colors.blue, null),
+                      _buildDashboardCard('إضافة دفعة', Icons.add_box, Colors.green, const AddBatchScreen()),
+                      _buildDashboardCard('سحب (FEFO)', Icons.outbox, Colors.red, const FefoWithdrawScreen()),
+                      _buildDashboardCard('السجل والفعاليات', Icons.history, Colors.blue, const HistoryScreen()),
+                      _buildDashboardCard('التقارير', Icons.bar_chart, Colors.purple, const ReportsScreen()),
+                      // زر الإعدادات أصبح الآن متصلاً بالشاشة الخاصة به
+                      _buildDashboardCard('الإعدادات', Icons.settings, Colors.blueGrey, const SettingsScreen()),
                     ],
                   ),
                 ),
@@ -58,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // تم تحديث الدالة لتقبل المتغير الجديد (destination) وهو الشاشة التي سننتقل إليها
+  // دالة مساعدة لإنشاء الأزرار بشكل أنيق ومختصر
   Widget _buildDashboardCard(String title, IconData icon, MaterialColor color, Widget? destination) {
     return Card(
       elevation: 4,
@@ -67,13 +73,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(15),
         onTap: () {
           if (destination != null) {
-            // إذا كانت الشاشة موجودة، انتقل إليها
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => destination),
             );
           } else {
-            // إذا لم تكن موجودة، اعرض هذه الرسالة
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('قريباً: فتح شاشة $title')),
             );
