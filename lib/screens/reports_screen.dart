@@ -8,7 +8,7 @@ class ReportsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('التقارير والإحصائيات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: Colors.purple, // لون مميز للتقارير
+        backgroundColor: Colors.purple,
         centerTitle: true,
       ),
       body: Center(
@@ -36,7 +36,6 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  // دالة مساعدة لتصميم كروت التقارير بشكل أنيق
   Widget _buildReportCard(String title, String subtitle, IconData icon, Color color) {
     return Card(
       elevation: 3,
@@ -50,11 +49,13 @@ class ReportsScreen extends StatelessWidget {
           child: Icon(icon, color: color, size: 28),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        subtitle: Text(subtitle, style: TextStyle(color: Colors.grey[700], marginTop: 4)),
+        // تم إصلاح الخطأ هنا باستخدام Padding بدلاً من الخاصية الخاطئة
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(subtitle, style: TextStyle(color: Colors.grey[700])),
+        ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-        onTap: () {
-          // سيتم برمجتها لاحقاً لفتح تفاصيل كل تقرير
-        },
+        onTap: () {},
       ),
     );
   }

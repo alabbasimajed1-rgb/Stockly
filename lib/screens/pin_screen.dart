@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // استدعاء مكتبة الذاكرة
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dashboard_screen.dart'; 
 
 class PinScreen extends StatefulWidget {
@@ -13,37 +13,59 @@ class _PinScreenState extends State<PinScreen> {
   final TextEditingController _pinController = TextEditingController();
   String _errorMessage = '';
   
-  // متغير لحفظ الرمز السري المقروء من الذاكرة (الافتراضي 0000)
-  String _savedPin = '0000'; 
+  bool _isFirstRun = false; // متغير لمعرفة هل هي المرة الأولى للتطبيق
+  String _savedPin = ''; 
 
   @override
   void initState() {
     super.initState();
-    _loadPinFromMemory(); // استدعاء الدالة عند فتح الشاشة فوراً
+    _loadPinFromMemory(); 
   }
 
-  // دالة للاتصال بالذاكرة وجلب الرمز السري
+  // دالة فحص الذاكرة الذكية
   void _loadPinFromMemory() async {
     final prefs = await SharedPreferences.getInstance();
+    String? storedPin = prefs.getString('app_pin');
+    
     setState(() {
-      // البحث عن مفتاح باسم 'app_pin'، إذا لم يجده يضع '0000'
-      _savedPin = prefs.getString('app_pin') ?? '0000'; 
+      if (storedPin == null) {
+        // إذا لم يجد رمزاً، فهذه المرة الأولى
+        _isFirstRun = true;
+      } else {
+        // إذا وجد رمزاً، يحفظه للمقارنة
+        _isFirstRun = false;
+        _savedPin = storedPin;
+      }
     });
   }
 
-  // دالة للتحقق من الرمز
-  void _checkPin() {
-    // الآن نقارن الرمز المدخل بالرمز المحفوظ في الذاكرة بدلاً من النص الثابت
-    if (_pinController.text == _savedPin) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
+  // دالة التعامل مع الإدخال (إنشاء أو تحقق)
+  void _handlePinInput() async {
+    if (_isFirstRun) {
+      // في المرة الأولى: احفظ الرمز الذي أدخله المستخدم كرمز جديد
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('app_pin', _pinController.text);
+      
+      // الانتقال للوحة التحكم
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+      }
     } else {
-      setState(() {
-        _errorMessage = 'الرمز السري غير صحيح';
-        _pinController.clear();
-      });
+      // في المرات القادمة: قارن الرمز المدخل بالرمز المحفوظ
+      if (_pinController.text == _savedPin) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'الرمز السري غير صحيح';
+          _pinController.clear();
+        });
+      }
     }
   }
 
@@ -57,7 +79,11 @@ class _PinScreenState extends State<PinScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.lock_outline, size: 100, color: Colors.blue[800]),
+              Icon(
+                _isFirstRun ? Icons.lock_open : Icons.lock_outline, // تغيير الأيقونة
+                size: 100, 
+                color: _isFirstRun ? Colors.green[700] : Colors.blue[800]
+              ),
               const SizedBox(height: 20),
               Text(
                 'Stockly',
@@ -68,9 +94,13 @@ class _PinScreenState extends State<PinScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'الرجاء إدخال الرمز السري للمتابعة',
-                style: TextStyle(fontSize: 16),
+              // تغيير النص بناءً على حالة التطبيق
+              Text(
+                _isFirstRun 
+                    ? 'مرحباً بك! قم بإنشاء رمز سري جديد (4 أرقام)' 
+                    : 'الرجاء إدخال الرمز السري للمتابعة',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
               SizedBox(
@@ -92,7 +122,7 @@ class _PinScreenState extends State<PinScreen> {
                   ),
                   onChanged: (value) {
                     if (value.length == 4) {
-                      _checkPin();
+                      _handlePinInput(); // استدعاء الدالة عند اكتمال 4 أرقام
                     }
                   },
                 ),
