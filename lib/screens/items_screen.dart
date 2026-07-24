@@ -1,115 +1,67 @@
 import 'package:flutter/material.dart';
+import '../localization.dart';
 
-class ItemsScreen extends StatefulWidget {
+class ItemsScreen extends StatelessWidget {
   const ItemsScreen({Key? key}) : super(key: key);
-
-  @override
-  _ItemsScreenState createState() => _ItemsScreenState();
-}
-
-class _ItemsScreenState extends State<ItemsScreen> {
-  // قائمة وهمية لتخزين الأصناف مؤقتاً في ذاكرة التطبيق
-  List<String> items = [];
-
-  // Controller لأخذ النص من حقل الإدخال
-  final TextEditingController _itemController = TextEditingController();
-
-  // دالة لفتح نافذة إضافة صنف جديد
-  void _showAddItemDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text('إضافة صنف جديد'),
-          content: TextField(
-            controller: _itemController,
-            decoration: const InputDecoration(
-              hintText: "اسم الصنف (مثال: محاليل وريدية)",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _itemController.clear();
-                Navigator.pop(context); // إغلاق النافذة بدون إضافة
-              },
-              child: const Text('إلغاء', style: TextStyle(color: Colors.red)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-              onPressed: () {
-                if (_itemController.text.isNotEmpty) {
-                  setState(() {
-                    items.add(_itemController.text); // إضافة النص للقائمة
-                  });
-                  _itemController.clear();
-                  Navigator.pop(context); // إغلاق النافذة بعد الإضافة
-                }
-              },
-              child: const Text('إضافة', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الأصناف والفئات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text(AppTexts.get('items'), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.orange,
         centerTitle: true,
       ),
-      // تقييد العرض ليتناسب مع شكل الهاتف إذا كنت تستخدم الكمبيوتر
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 450),
-          child: items.isEmpty
-              ? const Center(
-                  child: Text(
-                    'لا توجد أصناف حتى الآن.\nاضغط على الزر أدناه لإضافة صنف.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: AppTexts.get('search_item'),
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    filled: true,
+                    fillColor: Colors.grey[100],
                   ),
-                )
-              : ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.orange,
-                          child: Icon(Icons.inventory_2, color: Colors.white),
-                        ),
-                        title: Text(
-                          items[index],
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            setState(() {
-                              items.removeAt(index); // حذف الصنف عند الضغط على سلة المهملات
-                            });
-                          },
-                        ),
-                      ),
-                    );
-                  },
                 ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildItemCard('محلول ملحي (Normal Saline)', 'المخزون: 120 عبوة', Icons.local_hospital, Colors.blue),
+                    _buildItemCard('مسكن ألم (Paracetamol)', 'المخزون: 45 علبة', Icons.medication, Colors.red),
+                    _buildItemCard('مضاد حيوي (Amoxicillin)', 'المخزون: 15 علبة (تحت الحد الأدنى)', Icons.healing, Colors.orange),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddItemDialog,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {},
         backgroundColor: Colors.orange,
-        child: const Icon(Icons.add, color: Colors.white),
+        icon: const Icon(Icons.add),
+        label: Text(AppTexts.get('add_new_item'), style: const TextStyle(fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
+  Widget _buildItemCard(String title, String subtitle, IconData icon, Color iconColor) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        leading: CircleAvatar(backgroundColor: iconColor.withOpacity(0.2), child: Icon(icon, color: iconColor)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.edit, color: Colors.grey),
       ),
     );
   }

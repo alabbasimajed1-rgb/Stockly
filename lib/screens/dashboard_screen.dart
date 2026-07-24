@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../localization.dart'; // استدعاء القاموس
 import 'items_screen.dart'; 
 import 'add_batch_screen.dart'; 
 import 'fefo_withdraw_screen.dart'; 
 import 'history_screen.dart'; 
 import 'reports_screen.dart'; 
-import 'settings_screen.dart'; // الاستدعاء الجديد لشاشة الإعدادات
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -18,9 +19,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'لوحة التحكم - Stockly', 
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)
+        // استدعاء نص عنوان الشاشة من القاموس
+        title: Text(
+          AppTexts.get('dashboard_title'), 
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)
         ),
         backgroundColor: Colors.blue[800],
         centerTitle: true,
@@ -34,9 +36,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'مرحباً بك،',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                // استدعاء نص الترحيب من القاموس
+                Text(
+                  AppTexts.get('welcome'),
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
                 Expanded(
@@ -46,13 +49,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 1.1,
                     children: [
-                      _buildDashboardCard('الأصناف والفئات', Icons.inventory, Colors.orange, const ItemsScreen()),
-                      _buildDashboardCard('إضافة دفعة', Icons.add_box, Colors.green, const AddBatchScreen()),
-                      _buildDashboardCard('سحب (FEFO)', Icons.outbox, Colors.red, const FefoWithdrawScreen()),
-                      _buildDashboardCard('السجل والفعاليات', Icons.history, Colors.blue, const HistoryScreen()),
-                      _buildDashboardCard('التقارير', Icons.bar_chart, Colors.purple, const ReportsScreen()),
-                      // زر الإعدادات أصبح الآن متصلاً بالشاشة الخاصة به
-                      _buildDashboardCard('الإعدادات', Icons.settings, Colors.blueGrey, const SettingsScreen()),
+                      // استدعاء نصوص الأزرار من القاموس
+                      _buildDashboardCard(AppTexts.get('items'), Icons.inventory, Colors.orange, const ItemsScreen()),
+                      _buildDashboardCard(AppTexts.get('add_batch'), Icons.add_box, Colors.green, const AddBatchScreen()),
+                      _buildDashboardCard(AppTexts.get('fefo_withdraw'), Icons.outbox, Colors.red, const FefoWithdrawScreen()),
+                      _buildDashboardCard(AppTexts.get('history'), Icons.history, Colors.blue, const HistoryScreen()),
+                      _buildDashboardCard(AppTexts.get('reports'), Icons.bar_chart, Colors.purple, const ReportsScreen()),
+                      _buildDashboardCard(AppTexts.get('settings'), Icons.settings, Colors.blueGrey, const SettingsScreen()),
                     ],
                   ),
                 ),
@@ -64,7 +67,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // دالة مساعدة لإنشاء الأزرار بشكل أنيق ومختصر
   Widget _buildDashboardCard(String title, IconData icon, MaterialColor color, Widget? destination) {
     return Card(
       elevation: 4,
@@ -76,10 +78,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => destination),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('قريباً: فتح شاشة $title')),
             );
           }
         },

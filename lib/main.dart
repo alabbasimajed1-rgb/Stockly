@@ -1,24 +1,37 @@
 import 'package:flutter/material.dart';
 import 'screens/pin_screen.dart';
+import 'localization.dart'; // استدعاء العقل المدبر للغات
 
 void main() {
-  runApp(const StocklyApp());
+  runApp(const MyApp());
 }
 
-class StocklyApp extends StatelessWidget {
-  const StocklyApp({Key? key}) : super(key: key);
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Stockly',
-      debugShowCheckedModeBanner: false, // هذه تخفي شريط Debug الأحمر المزعج من الشاشة
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.grey[100],
-      ),
-      // الواجهة الأولى التي تفتح مع التطبيق
-      home: const PinScreen(),
+    // هذه الأداة تراقب المتغير الذكي للغة، وتعيد بناء التطبيق عند تغييره
+    return ValueListenableBuilder<String>(
+      valueListenable: appLanguage,
+      builder: (context, language, child) {
+        return MaterialApp(
+          title: 'Stockly',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            fontFamily: 'Cairo', // يفضل استخدام خط يدعم اللغات بوضوح
+          ),
+          // إجبار التطبيق على تغيير الاتجاه (يمين/يسار) بناءً على اللغة
+          builder: (context, child) {
+            return Directionality(
+              textDirection: AppTexts.getDirection(),
+              child: child!,
+            );
+          },
+          home: const PinScreen(),
+        );
+      },
     );
   }
 }

@@ -1,149 +1,122 @@
 import 'package:flutter/material.dart';
+import '../localization.dart';
 
 class AddBatchScreen extends StatefulWidget {
   const AddBatchScreen({Key? key}) : super(key: key);
-
   @override
   _AddBatchScreenState createState() => _AddBatchScreenState();
 }
 
 class _AddBatchScreenState extends State<AddBatchScreen> {
-  final TextEditingController _batchController = TextEditingController();
-  final TextEditingController _quantityController = TextEditingController();
-  DateTime? _selectedDate;
-  
-  // قائمة وهمية مؤقتة للأصناف لتجربة القائمة المنسدلة
-  String _selectedItem = 'محلول ملحي (Normal Saline)';
-  final List<String> _dummyItems = [
-    'محلول ملحي (Normal Saline)',
-    'خيوط جراحية',
-    'مضاد حيوي (Amoxicillin)',
-    'مسكن ألم (Paracetamol)'
-  ];
+  String? _selectedItem;
+  DateTime? _expiryDate;
 
-  // دالة لفتح تقويم (Calendar) لاختيار تاريخ الانتهاء
-  void _presentDatePicker() {
-    showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(), // لا يمكن اختيار تاريخ في الماضي
-      lastDate: DateTime(2035),  // حد أقصى للتواريخ
-    ).then((pickedDate) {
-      if (pickedDate == null) return;
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-    });
-  }
+  final List<String> _dummyItems = [
+    'محلول ملحي (Normal Saline)', 'خيوط جراحية', 'مضاد حيوي (Amoxicillin)', 'مسكن ألم (Paracetamol)'
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إضافة دفعة جديدة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: Colors.green, // نفس لون الزر في لوحة التحكم
+        title: Text(AppTexts.get('add_batch'), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Colors.green[700],
         centerTitle: true,
       ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 450),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 10),
-                // 1. القائمة المنسدلة لاختيار الصنف
+                // القائمة المنسدلة لا تقبل إضافة أصناف جديدة، بل الاختيار فقط
                 DropdownButtonFormField<String>(
-                  value: _selectedItem,
-                  decoration: const InputDecoration(
-                    labelText: 'اختر الصنف',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.inventory),
+                  decoration: InputDecoration(
+                    labelText: AppTexts.get('select_item'),
+                    prefixIcon: const Icon(Icons.inventory_2_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
+                  value: _selectedItem,
                   items: _dummyItems.map((item) {
                     return DropdownMenuItem(value: item, child: Text(item));
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedItem = value!;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _selectedItem = value),
                 ),
                 const SizedBox(height: 20),
-
-                // 2. حقل رقم التشغيلة (Batch Number)
                 TextField(
-                  controller: _batchController,
-                  decoration: const InputDecoration(
-                    labelText: 'رقم التشغيلة (Batch/Lot Number)',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.qr_code),
+                  decoration: InputDecoration(
+                    labelText: AppTexts.get('batch_number'),
+                    prefixIcon: const Icon(Icons.qr_code),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // 3. حقل الكمية
                 TextField(
-                  controller: _quantityController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'الكمية المدخلة',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.add_shopping_cart),
+                  decoration: InputDecoration(
+                    labelText: AppTexts.get('quantity'),
+                    prefixIcon: const Icon(Icons.add_shopping_cart),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // 4. زر اختيار تاريخ الانتهاء (مهم جداً)
                 Container(
-                  height: 60,
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _selectedDate == null
-                            ? 'تاريخ الانتهاء غير محدد'
-                            : 'الانتهاء: ${_selectedDate!.year}/${_selectedDate!.month}/${_selectedDate!.day}',
-                        style: TextStyle(
-                          fontSize: 16, 
-                          color: _selectedDate == null ? Colors.red : Colors.black,
-                          fontWeight: FontWeight.bold
-                        ),
+                        _expiryDate == null 
+                            ? AppTexts.get('no_date_selected') 
+                            : '${_expiryDate!.year}/${_expiryDate!.month}/${_expiryDate!.day}',
+                        style: TextStyle(fontSize: 16, color: _expiryDate == null ? Colors.red : Colors.black),
                       ),
                       TextButton.icon(
-                        onPressed: _presentDatePicker,
-                        icon: const Icon(Icons.calendar_month),
-                        label: const Text('اختر التاريخ', style: TextStyle(fontWeight: FontWeight.bold)),
-                      )
+                        onPressed: () {},
+                        icon: const Icon(Icons.calendar_today),
+                        label: Text(AppTexts.get('select_date')),
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 40),
-
-                // 5. زر الحفظ
+                const SizedBox(height: 20),
+                
+                // الحقل الجديد: تنبيه الحد الأدنى للكمية
+                TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: AppTexts.get('min_qty_alert'),
+                    prefixIcon: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // الحقل الجديد: تنبيه قرب الانتهاء (بالأشهر)
+                TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: AppTexts.get('min_expiry_alert'),
+                    prefixIcon: const Icon(Icons.notification_important, color: Colors.redAccent),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.green[700],
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  onPressed: () {
-                    // إغلاق الشاشة والعودة للوحة التحكم مع رسالة نجاح
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('تم حفظ الدفعة في المخزون بنجاح!')),
-                    );
-                    Navigator.pop(context); 
-                  },
-                  child: const Text(
-                    'حفظ الدفعة', 
-                    style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)
-                  ),
+                  onPressed: () {},
+                  child: Text(AppTexts.get('save_batch'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ],
             ),

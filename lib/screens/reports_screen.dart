@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../localization.dart'; // استدعاء القاموس
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({Key? key}) : super(key: key);
@@ -7,7 +8,7 @@ class ReportsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('التقارير والإحصائيات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text(AppTexts.get('reports'), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.purple,
         centerTitle: true,
       ),
@@ -17,18 +18,18 @@ class ReportsScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 20),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
                 child: Text(
-                  'نظرة عامة على المخزون',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  AppTexts.get('reports_overview'),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
               ),
-              _buildReportCard('إجمالي الأصناف', '45 صنف مسجل', Icons.analytics, Colors.blue),
-              _buildReportCard('نواقص المخزون', '3 أصناف تحت الحد الأدنى', Icons.warning_amber_rounded, Colors.orange),
-              _buildReportCard('تنبيهات الصلاحية (FEFO)', 'دفعتان تقتربان من الانتهاء', Icons.date_range, Colors.red),
-              _buildReportCard('حركة المخزن اليوم', '12 عملية (دخول/خروج)', Icons.sync_alt, Colors.green),
+              _buildReportCard(AppTexts.get('total_items'), AppTexts.get('total_items_sub'), Icons.analytics, Colors.blue),
+              _buildReportCard(AppTexts.get('shortages'), AppTexts.get('shortages_sub'), Icons.warning_amber_rounded, Colors.orange),
+              _buildReportCard(AppTexts.get('expiry_alerts'), AppTexts.get('expiry_alerts_sub'), Icons.date_range, Colors.red),
+              _buildReportCard(AppTexts.get('today_movement'), AppTexts.get('today_movement_sub'), Icons.sync_alt, Colors.green),
             ],
           ),
         ),
@@ -49,7 +50,6 @@ class ReportsScreen extends StatelessWidget {
           child: Icon(icon, color: color, size: 28),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        // تم إصلاح الخطأ هنا باستخدام Padding بدلاً من الخاصية الخاطئة
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4.0),
           child: Text(subtitle, style: TextStyle(color: Colors.grey[700])),
