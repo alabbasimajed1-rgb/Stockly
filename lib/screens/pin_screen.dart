@@ -1,143 +1,145 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dashboard_screen.dart'; 
+import '../localization.dart';
+import 'home_screen.dart';
 
 class PinScreen extends StatefulWidget {
   const PinScreen({Key? key}) : super(key: key);
-
   @override
   _PinScreenState createState() => _PinScreenState();
 }
 
 class _PinScreenState extends State<PinScreen> {
-  final TextEditingController _pinController = TextEditingController();
-  String _errorMessage = '';
-  
-  bool _isFirstRun = false; // متغير لمعرفة هل هي المرة الأولى للتطبيق
-  String _savedPin = ''; 
+  String _enteredPin = '';
+  String? _savedPin;
+  bool _isCreatingPin = false;
+  String _tempPin = '';
 
   @override
   void initState() {
     super.initState();
-    _loadPinFromMemory(); 
+    _loadPin();
   }
 
-  // دالة فحص الذاكرة الذكية
-  void _loadPinFromMemory() async {
+  Future<void> _loadPin() async {
     final prefs = await SharedPreferences.getInstance();
-    String? storedPin = prefs.getString('app_pin');
-    
     setState(() {
-      if (storedPin == null) {
-        // إذا لم يجد رمزاً، فهذه المرة الأولى
-        _isFirstRun = true;
-      } else {
-        // إذا وجد رمزاً، يحفظه للمقارنة
-        _isFirstRun = false;
-        _savedPin = storedPin;
+      _savedPin = prefs.getString('user_pin');
+      if (_savedPin == null) {
+        _isCreatingPin = true; // مستخدم جديد: اطلب منه إنشاء رمز
       }
     });
   }
 
-  // دالة التعامل مع الإدخال (إنشاء أو تحقق)
-  void _handlePinInput() async {
-    if (_isFirstRun) {
-      // في المرة الأولى: احفظ الرمز الذي أدخله المستخدم كرمز جديد
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('app_pin', _pinController.text);
-      
-      // الانتقال للوحة التحكم
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        );
-      }
-    } else {
-      // في المرات القادمة: قارن الرمز المدخل بالرمز المحفوظ
-      if (_pinController.text == _savedPin) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'الرمز السري غير صحيح';
-          _pinController.clear();
-        });
+  void _onNumberPressed(String number) {
+    if (_enteredPin.length < 4) {
+      setState(() => _enteredPin += number);
+      if (_enteredPin.length == 4) {
+        _verifyPin();
       }
     }
   }
 
+  void _verifyPin() async {
+    if (_isCreatingPin) {
+      if (_tempPin.isEmpty) {
+        // تم إدخال الرمز لأول مرة، اطلب التأكيد
+        setState(() {
+          _tempPin = _enteredPin;
+          _enteredPin = '';
+        });
+      } else {
+        // التأكيد
+        if (_tempPin == _enteredPin) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_pin', _enteredPin);
+          _navigateToHome();
+        } else {
+          _showError(AppTexts.get('pin_mismatch_error') ?? 'PIN mismatch');
+          setState(() {
+            _tempPin = '';
+            _enteredPin = '';
+          });
+        }
+      }
+    } else {
+      // مستخدم قديم، تحقق من الرمز
+      if (_enteredPin == _savedPin) {
+        _navigateToHome();
+      } else {
+        _showError(AppTexts.get('pin_error') ?? 'Incorrect PIN');
+        setState(() => _enteredPin = '');
+      }
+    }
+  }
+
+  void _navigateToHome() {
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+  }
+
   @override
   Widget build(BuildContext context) {
+    String message = _isCreatingPin 
+        ? (_tempPin.isEmpty ? (AppTexts.get('create_pin_msg') ?? 'Create a new 4-digit PIN') : (AppTexts.get('confirm_pin_msg') ?? 'Confirm your new PIN'))
+        : (AppTexts.get('enter_pin_msg') ?? 'Enter your 4-digit PIN');
+
     return Scaffold(
       backgroundColor: Colors.blueGrey[50],
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                _isFirstRun ? Icons.lock_open : Icons.lock_outline, // تغيير الأيقونة
-                size: 100, 
-                color: _isFirstRun ? Colors.green[700] : Colors.blue[800]
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Stockly',
-                style: TextStyle(
-                  fontSize: 32, 
-                  fontWeight: FontWeight.bold, 
-                  color: Colors.blue[800]
-                ),
-              ),
-              const SizedBox(height: 10),
-              // تغيير النص بناءً على حالة التطبيق
-              Text(
-                _isFirstRun 
-                    ? 'مرحباً بك! قم بإنشاء رمز سري جديد (4 أرقام)' 
-                    : 'الرجاء إدخال الرمز السري للمتابعة',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: 200,
-                child: TextField(
-                  controller: _pinController,
-                  keyboardType: TextInputType.number,
-                  obscureText: true,
-                  textAlign: TextAlign.center,
-                  maxLength: 4,
-                  style: const TextStyle(fontSize: 24, letterSpacing: 15),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    counterText: '', 
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.lock_outline, size: 80, color: Colors.green),
+            const SizedBox(height: 20),
+            const Text('Stockly', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.blue)),
+            const SizedBox(height: 10),
+            Text(message, style: const TextStyle(fontSize: 18, color: Colors.black87)),
+            const SizedBox(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(4, (index) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  width: 20, height: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: index < _enteredPin.length ? Colors.blue : Colors.transparent,
+                    border: Border.all(color: Colors.blue, width: 2),
                   ),
-                  onChanged: (value) {
-                    if (value.length == 4) {
-                      _handlePinInput(); // استدعاء الدالة عند اكتمال 4 أرقام
-                    }
-                  },
-                ),
+                );
+              }),
+            ),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: 250,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 1.2),
+                itemCount: 12,
+                itemBuilder: (context, index) {
+                  if (index == 9) return const SizedBox.shrink(); // فراغ
+                  if (index == 11) { // زر المسح
+                    return IconButton(
+                      icon: const Icon(Icons.backspace, color: Colors.red),
+                      onPressed: () {
+                        if (_enteredPin.isNotEmpty) setState(() => _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1));
+                      },
+                    );
+                  }
+                  String number = index == 10 ? '0' : '${index + 1}';
+                  return TextButton(
+                    onPressed: () => _onNumberPressed(number),
+                    child: Text(number, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  );
+                },
               ),
-              const SizedBox(height: 15),
-              Text(
-                _errorMessage,
-                style: const TextStyle(
-                  color: Colors.red, 
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
