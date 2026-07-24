@@ -1,14 +1,27 @@
 import 'package:flutter/material.dart';
-import '../localization.dart'; // استدعاء القاموس
+import '../localization.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({Key? key}) : super(key: key);
+
+  void _showDetails(BuildContext context, String title) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(AppTexts.get('details_soon') ?? 'Detailed view will be available once database is connected.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppTexts.get('close') ?? 'Close'))
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppTexts.get('reports'), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text(AppTexts.get('reports') ?? 'Reports', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.purple,
         centerTitle: true,
       ),
@@ -16,20 +29,40 @@ class ReportsScreen extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 450),
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16.0),
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Text(
-                  AppTexts.get('reports_overview'),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Text('Inventory Overview', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
               ),
-              _buildReportCard(AppTexts.get('total_items'), AppTexts.get('total_items_sub'), Icons.analytics, Colors.blue),
-              _buildReportCard(AppTexts.get('shortages'), AppTexts.get('shortages_sub'), Icons.warning_amber_rounded, Colors.orange),
-              _buildReportCard(AppTexts.get('expiry_alerts'), AppTexts.get('expiry_alerts_sub'), Icons.date_range, Colors.red),
-              _buildReportCard(AppTexts.get('today_movement'), AppTexts.get('today_movement_sub'), Icons.sync_alt, Colors.green),
+              _buildReportCard(
+                title: AppTexts.get('total_items') ?? 'Total Items',
+                subtitle: '0 registered items',
+                icon: Icons.bar_chart,
+                color: Colors.blue,
+                onTap: () => _showDetails(context, AppTexts.get('total_items') ?? 'Total Items'),
+              ),
+              _buildReportCard(
+                title: AppTexts.get('stock_shortages') ?? 'Stock Shortages',
+                subtitle: '0 items below minimum',
+                icon: Icons.warning_amber_rounded,
+                color: Colors.orange,
+                onTap: () => _showDetails(context, AppTexts.get('stock_shortages') ?? 'Stock Shortages'),
+              ),
+              _buildReportCard(
+                title: AppTexts.get('expiry_alerts') ?? 'Expiry Alerts (FEFO)',
+                subtitle: '0 batches nearing expiry',
+                icon: Icons.date_range,
+                color: Colors.redAccent,
+                onTap: () => _showDetails(context, AppTexts.get('expiry_alerts') ?? 'Expiry Alerts'),
+              ),
+              _buildReportCard(
+                title: AppTexts.get('todays_movement') ?? 'Today\'s Movement',
+                subtitle: '0 operations (In/Out)',
+                icon: Icons.swap_horiz,
+                color: Colors.green,
+                onTap: () => _showDetails(context, AppTexts.get('todays_movement') ?? 'Today\'s Movement'),
+              ),
             ],
           ),
         ),
@@ -37,25 +70,34 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReportCard(String title, String subtitle, IconData icon, Color color) {
+  Widget _buildReportCard({required String title, required String subtitle, required IconData icon, required Color color, required VoidCallback onTap}) {
     return Card(
-      elevation: 3,
+      elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          radius: 25,
-          backgroundColor: color.withOpacity(0.15),
-          child: Icon(icon, color: color, size: 28),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              CircleAvatar(backgroundColor: color.withOpacity(0.2), radius: 25, child: Icon(icon, color: color, size: 28)),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(subtitle, style: TextStyle(color: Colors.grey[600])),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.grey),
+            ],
+          ),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Text(subtitle, style: TextStyle(color: Colors.grey[700])),
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-        onTap: () {},
       ),
     );
   }
