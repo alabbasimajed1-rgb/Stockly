@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../localization.dart';
-import 'home_screen.dart';
+import 'dashboard_screen.dart'; // تم تصحيح مسار الملف هنا
 
 class PinScreen extends StatefulWidget {
   const PinScreen({Key? key}) : super(key: key);
@@ -74,7 +74,8 @@ class _PinScreenState extends State<PinScreen> {
   }
 
   void _navigateToHome() {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+    // تم تصحيح اسم واجهة الشاشة الرئيسية هنا
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardScreen()));
   }
 
   void _showError(String message) {
