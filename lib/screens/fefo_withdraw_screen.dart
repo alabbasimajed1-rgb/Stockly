@@ -9,10 +9,38 @@ class FefoWithdrawScreen extends StatefulWidget {
 
 class _FefoWithdrawScreenState extends State<FefoWithdrawScreen> {
   String? _selectedItem;
+  final TextEditingController _qtyController = TextEditingController();
 
-  final List<String> _dummyItems = [
-    'محلول ملحي (Normal Saline)', 'خيوط جراحية', 'مضاد حيوي (Amoxicillin)', 'مسكن ألم (Paracetamol)'
-  ];
+  final Map<String, int> _inventoryData = {
+    'محلول ملحي (Normal Saline)': 120,
+    'خيوط جراحية': 200,
+    'مضاد حيوي (Amoxicillin)': 15,
+    'مسكن ألم (Paracetamol)': 45,
+  };
+
+  void _withdrawBatch() {
+    if (_selectedItem == null || _qtyController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('الرجاء اختيار الصنف وتحديد الكمية!'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    int withdrawQty = int.tryParse(_qtyController.text) ?? 0;
+    int currentStock = _inventoryData[_selectedItem]!;
+
+    if (withdrawQty > currentStock) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('الكمية المطلوبة أكبر من المتوفر في المخزن!'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تم السحب بنجاح حسب نظام FEFO!'), backgroundColor: Colors.green),
+    );
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +60,6 @@ class _FefoWithdrawScreenState extends State<FefoWithdrawScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
-                  // تم تصحيح الخطأ في هذا السطر
                   margin: const EdgeInsets.only(bottom: 20.0),
                   decoration: BoxDecoration(color: Colors.orange[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.orange)),
                   child: Row(
@@ -50,13 +77,22 @@ class _FefoWithdrawScreenState extends State<FefoWithdrawScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   value: _selectedItem,
-                  items: _dummyItems.map((item) {
-                    return DropdownMenuItem(value: item, child: Text(item));
-                  }).toList(),
+                  items: _inventoryData.keys.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
                   onChanged: (value) => setState(() => _selectedItem = value),
                 ),
-                const SizedBox(height: 20),
+                
+                if (_selectedItem != null) 
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 12.0, right: 10, left: 10),
+                    child: Text(
+                      'الكمية المتوفرة حالياً: ${_inventoryData[_selectedItem]}',
+                      style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                  ),
+
+                const SizedBox(height: 10),
                 TextField(
+                  controller: _qtyController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: AppTexts.get('withdraw_qty'),
@@ -71,7 +107,7 @@ class _FefoWithdrawScreenState extends State<FefoWithdrawScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  onPressed: () {},
+                  onPressed: _withdrawBatch,
                   child: Text(AppTexts.get('withdraw_btn'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ],
