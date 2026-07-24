@@ -10,13 +10,11 @@ class AddBatchScreen extends StatefulWidget {
 class _AddBatchScreenState extends State<AddBatchScreen> {
   String? _selectedItem;
   DateTime? _expiryDate;
-  
   final TextEditingController _batchController = TextEditingController();
   final TextEditingController _qtyController = TextEditingController();
 
-  final List<String> _dummyItems = [
-    'محلول ملحي (Normal Saline)', 'خيوط جراحية', 'مضاد حيوي (Amoxicillin)', 'مسكن ألم (Paracetamol)'
-  ];
+  // لا يزال هناك أصناف وهمية هنا فقط لغرض تجربة السحب، سنحذفها لاحقاً عند ربط قاعدة البيانات
+  final List<String> _dummyItems = ['Item A', 'Item B'];
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -35,13 +33,12 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
   void _saveBatch() {
     if (_selectedItem == null || _qtyController.text.isEmpty || _expiryDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء تعبئة الصنف، الكمية، وتاريخ الانتهاء!'), backgroundColor: Colors.red),
+        SnackBar(content: Text(AppTexts.get('fill_required') ?? 'Please fill required fields!'), backgroundColor: Colors.red),
       );
       return;
     }
-    
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم الحفظ بنجاح!'), backgroundColor: Colors.green),
+      SnackBar(content: Text(AppTexts.get('saved_success') ?? 'Saved Successfully!'), backgroundColor: Colors.green),
     );
     Navigator.pop(context); 
   }
@@ -50,7 +47,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppTexts.get('add_batch'), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text(AppTexts.get('add_batch') ?? 'Add Batch', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.green[700],
         centerTitle: true,
       ),
@@ -64,7 +61,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
-                    labelText: AppTexts.get('select_item'),
+                    labelText: AppTexts.get('select_item') ?? 'Select Item',
                     prefixIcon: const Icon(Icons.inventory_2_outlined),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -76,7 +73,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                 TextField(
                   controller: _batchController,
                   decoration: InputDecoration(
-                    labelText: '${AppTexts.get('batch_number')} (اختياري)',
+                    labelText: '${AppTexts.get('batch_number') ?? 'Batch/Lot Number'} (${AppTexts.get('optional') ?? 'Optional'})',
                     prefixIcon: const Icon(Icons.qr_code),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -86,7 +83,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                   controller: _qtyController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: AppTexts.get('quantity'),
+                    labelText: AppTexts.get('quantity') ?? 'Quantity',
                     prefixIcon: const Icon(Icons.add_shopping_cart),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -105,9 +102,9 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                       children: [
                         Text(
                           _expiryDate == null 
-                              ? AppTexts.get('no_date_selected') 
+                              ? (AppTexts.get('expiry_date') ?? 'Expiry Date') // تم تحويلها كما طلبت
                               : '${_expiryDate!.year}/${_expiryDate!.month}/${_expiryDate!.day}',
-                          style: TextStyle(fontSize: 16, color: _expiryDate == null ? Colors.red : Colors.black),
+                          style: TextStyle(fontSize: 16, color: _expiryDate == null ? Colors.black54 : Colors.black),
                         ),
                         const Icon(Icons.calendar_today, color: Colors.blue),
                       ],
@@ -118,7 +115,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                 TextField(
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: AppTexts.get('min_qty_alert'),
+                    labelText: AppTexts.get('min_qty_alert') ?? 'Minimum Quantity Alert',
                     prefixIcon: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -127,7 +124,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                 TextField(
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: AppTexts.get('min_expiry_alert'),
+                    labelText: AppTexts.get('min_expiry_alert') ?? 'Expiry Alert Threshold',
                     prefixIcon: const Icon(Icons.notification_important, color: Colors.redAccent),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -140,7 +137,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: _saveBatch,
-                  child: Text(AppTexts.get('save_batch'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: Text(AppTexts.get('save_batch') ?? 'Save Batch', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ],
             ),
